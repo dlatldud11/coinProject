@@ -1,0 +1,42 @@
+# 🐍 Python 관련
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# 📦 가상환경
+venv/
+ENV/
+env/
+.venv/
+
+# 🔐 환경 변수
+.env
+.env.*
+
+# 🧪 테스트 결과 및 캐시
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.DS_Store
+*.egg-info/
+*.eggs/
+.cache/
+coverage/
+dist/
+build/
+
+# 📊 로그/출력 파일
+trade_log.csv
+*.csv
+
+# 📂 VSCode 설정 파일 (선택)
+.vscode/
+.idea/
+
+# 📍 OS/기타
+Thumbs.db
+ehthumbs.db
+Desktop.ini
