@@ -9,14 +9,14 @@ async def run_fill_checker(csv_file):
   # print(f"[체결확인] 실행됨 - csv_file: {csv_file}")
   
   while True:
-      # print("[체결확인] 체결 확인 배치 실행 중...")
+      print("[체결확인] 체결 확인 배치 실행 중...")
 
       if not os.path.exists(csv_file):
         # print("[체결확인] CSV 파일 없음. 1분 후 재시도.")
         await asyncio.sleep(60)
         continue
       
-      print("[체결확인] CSV 파일 발견. 처리 시작.")
+      # print("[체결확인] CSV 파일 발견. 처리 시작.")
       rows = []
       updated = False
 
