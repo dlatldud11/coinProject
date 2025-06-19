@@ -24,5 +24,5 @@ def init_log_file(market="KRW-BTC"):
 def log_trade(uuid, timestamp, type_, price, volume, amounts, profit, profit_rate, total_profit, trade_count, filename="trade_log.csv"):
     with open(filename, mode="a", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow([uuid, timestamp, type_, price, round(volume, 2), round(amounts, 2), round(profit, 2), round(profit_rate, 2), round(total_profit, 2), trade_count])
+        writer.writerow([uuid, timestamp, type_, price, round(volume, 4), round(amounts, 4), round(profit, 2), round(profit_rate, 2), round(total_profit, 2), trade_count])
 

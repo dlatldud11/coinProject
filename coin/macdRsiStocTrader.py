@@ -104,9 +104,6 @@ async def wait_until_minute_plus_3sec(interval=5):
 async def run_auto_trading(market, csv_file):
     
     in_position = False
-    buy_price = 0.0
-    total_profit = 0.0
-    trade_count = 0
     market = market  # 거래할 마켓
     
     # 잔고테스트
@@ -114,8 +111,8 @@ async def run_auto_trading(market, csv_file):
     volume = result['ask_account']['balance']
     
     if float(volume) > 0:
-        buy_price = float(result['ask_account']['avg_buy_price']) # 잔고의 평균 매수가격
-        print(f"잔고가 있습니다. 현재 잔고: {volume} {market} 잔고의 평균 매수가격: {buy_price}")
+        avg_buy_price = float(result['ask_account']['avg_buy_price']) # 잔고의 평균 매수가격
+        print(f"잔고가 있습니다. 현재 잔고: {volume} {market} 잔고의 평균 매수가격: {avg_buy_price}")
         in_position = True
         
     price = "50000" # 매수 가격 (고정값)
@@ -139,7 +136,6 @@ async def run_auto_trading(market, csv_file):
         macd_prev, macd_curr = macd_list[-2], macd_list[-1]
         signal_prev, signal_curr = signal_list[-2], signal_list[-1]
         
-        # macd, signal = calculate_macd(close_used_prices)
         rsi = calculate_rsi(close_used_prices)
         stochastic_k, stochastic_d = calculate_stochastic(high_used_prices, low_used_prices, close_used_prices)
 
@@ -163,23 +159,11 @@ async def run_auto_trading(market, csv_file):
                 # 성공 시 처리 로직
                 print("매수주문 성공:")
                 order_uuid = result["uuid"]
-                # ticker = get_ticker(market)
-                # print(f"현재가: {ticker[0]["trade_price"]} 원")
-                
-                # buy_price, total_profit, trade_count = await finalize_trade_async(
-                #       uuid=order_uuid,
-                #       trade_type=trade_type,
-                #       sell_price=0,
-                #       buy_price=buy_price,
-                #       total_profit=total_profit,
-                #       trade_count=trade_count
-                #   )
-                
-                # buy_price = ticker[0]["trade_price"]
                 in_position = True
-                # print(f"🟢 매수! 가격: {buy_price}")
+                
                 print(f"🟢 매수 요청 결과: {result}")
-                log_trade(order_uuid, timestamp, "BUY", 0, 0, 0, 0, 0, 0, 0, csv_file)
+                order_timestamp = result.get("created_at", timestamp)
+                log_trade(order_uuid, order_timestamp, "BUY", 0, 0, 0, 0, 0, 0, 0, csv_file)
 
         # 📌 매도 조건
         elif (in_position and 
@@ -202,19 +186,10 @@ async def run_auto_trading(market, csv_file):
                 # 성공 시 처리 로직
                 print("매도주문 성공:")
                 order_uuid = result["uuid"]
-                # ticker = get_ticker(market)
-                # print(f"현재가: {ticker[0]["trade_price"]} 원")
-                
-                # buy_price, total_profit, trade_count = await finalize_trade_async(
-                #       uuid=order_uuid,
-                #       trade_type=trade_type,
-                #       buy_price=buy_price,
-                #       total_profit=total_profit,
-                #       trade_count=trade_count
-                #   )
                 
                 print(f"🔴 매도 요청 결과: {result}")
-                log_trade(order_uuid, timestamp, "SELL", 0, 0, 0, 0, 0, 0, 0, csv_file)
+                order_timestamp = result.get("created_at", timestamp)
+                log_trade(order_uuid, order_timestamp, "SELL", 0, 0, 0, 0, 0, 0, 0, csv_file)
 
 async def main():
     market = "KRW-XRP"  # 거래할 마켓
