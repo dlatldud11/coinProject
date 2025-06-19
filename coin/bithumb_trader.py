@@ -22,9 +22,9 @@ apiUrl = 'https://api.bithumb.com'
 def place_order(type, market, price, volume=0):
   # Set API parameters
   # requestBody = dict( market='KRW-BTC', side='bid', volume=0.001, price=84000000, ord_type='limit' )
-  if type == 'buy': #매수
+  if type == 'BUY': #매수
     requestBody = dict( market=market, side='bid', price=price, ord_type='price')
-  elif type == 'sell': #매도
+  elif type == 'SELL': #매도
     requestBody = dict( market=market, side='ask', volume=volume, ord_type='market')
 
   # print(f"주문 요청: {requestBody}")
