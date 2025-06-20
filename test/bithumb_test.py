@@ -1,9 +1,52 @@
-from coin.bithumb_trader import place_order, chance_order, is_order_failed, get_uuid_order, get_ticker
+from coin.bithumb_trader import place_order, chance_order, is_order_failed, get_uuid_order, get_ticker, fetch_candles
+from coin.macdRsiStocTrader import wait_until_minute_plus_3sec, calculate_macd, calculate_rsi, calculate_stochastic
 from log.logger import log_trade, init_log_file
-from coin.execute.finalize_trade_async import finalize_trade_async
 import json
 import asyncio
 from coin.execute.execute_batch import run_fill_checker
+from coin.execute.adjust_price import adjust_price_based_on_profit
+
+# 자동매매 로직
+async def run_auto_trading(market):
+    
+    in_position = False
+    market = market  # 거래할 마켓
+    
+    # 잔고테스트
+    result = chance_order(market)
+    volume = result['ask_account']['balance']
+    
+    if float(volume) > 0:
+        avg_buy_price = float(result['ask_account']['avg_buy_price']) # 잔고의 평균 매수가격
+        print(f"잔고가 있습니다. 현재 잔고: {volume} {market} 잔고의 평균 매수가격: {avg_buy_price}")
+        in_position = True
+        
+    price = "50000" # 매수 가격 (고정값)
+
+    while True:
+        await wait_until_minute_plus_3sec(interval=5)  # 5분봉 기준
+        # wait_until_minute_plus_3sec(interval=1)  # 1분봉 기준
+
+        high_prices, low_prices, close_prices, timestamps = fetch_candles(market)
+        if len(close_prices) < 27:
+            print("⚠️ 데이터 부족")
+            continue
+
+        high_used_prices = high_prices[:-1]  # 최신 캔들 제외
+        low_used_prices = low_prices[:-1]  # 최신 캔들 제외
+        close_used_prices = close_prices[:-1]  # 최신 캔들 제외
+        latest_price = close_used_prices[-1]
+        timestamp = timestamps[-2]
+
+        macd_list, signal_list = calculate_macd(close_used_prices, 2, 4, 2)
+        macd_prev, macd_curr = macd_list[-2], macd_list[-1]
+        signal_prev, signal_curr = signal_list[-2], signal_list[-1]
+        
+        rsi = calculate_rsi(close_used_prices)
+        stochastic_k, stochastic_d = calculate_stochastic(high_used_prices, low_used_prices, close_used_prices)
+
+        print(f"📅 {timestamp} | PRICE: {latest_price:.2f} 📈 MACD: {macd_curr:.2f}, Signal: {signal_curr:.2f}, RSI: {rsi:.2f}, Stochastic %K: {stochastic_k:.2f}")
+
 
 # !!!!!!! 이 테스트는 실제 주문을 발생시킵니다. 주의해서 사용하세요 !!!!!!!
 # 주문테스트
@@ -36,9 +79,9 @@ from coin.execute.execute_batch import run_fill_checker
 #     pass
 
 # 개별주문정보
-# result = get_uuid_order("C0106000001242288850")
+# result = get_uuid_order("C0106000001244342087")
 # print(f"주문 정보: {json.dumps(result, indent=2, ensure_ascii=False)}")
-# print(result["trades"][0]["price"])
+# print(result["paid_fee"])
 
 
 # 현재가 조회 테스트
@@ -61,9 +104,17 @@ from coin.execute.execute_batch import run_fill_checker
 #   )
   
 if __name__ == "__main__":
-    # asyncio.run(test_async())
-    asyncio.run(run_fill_checker("250619_KRW-XRP_trade.csv"))
+    market = "KRW-XRP"  # 거래할 마켓
+    
+    asyncio.run(run_fill_checker("250620_KRW-XRP_trade.csv"))   # 체결 확인 배치)
+    # price = adjust_price_based_on_profit("250620_KRW-XRP_trade.csv", 50000)
+    # print(f"조정된 가격: {price}")
+    
+    # # 잔고테스트
+    # result = chance_order(market)
+    # print(f"잔고테스트: {json.dumps(result, indent=2, ensure_ascii=False)}")
+    # volume = result['ask_account']['balance']
 
 
-# filename = init_log_file("KRW-BTC")
+# filename = init_log_file("KRW-XRP")
 # print(f"거래 로그 파일: {filename}")

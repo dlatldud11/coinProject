@@ -26,7 +26,7 @@ async def run_fill_checker(csv_file):
       rows = list(reader)
 
     for i, row in enumerate(rows):
-      if float(row["price"]) > 0:  # 이미 처리된 항목은 건너뜀
+      if row["price"] and float(row["price"]) > 0:  # 이미 처리된 항목은 건너뜀
           continue
 
       uuid = row["uuid"]
@@ -42,6 +42,7 @@ async def run_fill_checker(csv_file):
       total_price = 0.0
       total_volume = 0.0
       total_amounts = 0.0
+      paid_fee = float(detail["paid_fee"])
       
       for trade in detail["trades"]:
         total_price += float(trade["price"]) * float(trade["volume"])
@@ -56,6 +57,7 @@ async def run_fill_checker(csv_file):
       rows[i]["price"] = executed_price
       rows[i]["volume"] = total_volume
       rows[i]["amounts"] = total_amounts
+      rows[i]["paid_fee"] = paid_fee
 
       # 직전 거래 정보 찾기
       prev_index = i - 1
@@ -65,21 +67,34 @@ async def run_fill_checker(csv_file):
       prev_amounts = float(rows[prev_index]["amounts"]) if prev_index >= 0 else 0
       total_profit = float(rows[prev_index]["total_profit"]) if prev_index >= 0 else 0
       trade_count = int(rows[prev_index]["trade_count"]) if prev_index >= 0 else 0
+      prev_paid_fee = float(rows[prev_index]["paid_fee"]) if prev_index >= 0 else 0
+      total_profit_rate = float(rows[prev_index]["total_profit_rate"]) if prev_index >= 0 else 0
 
       if order_type == "BUY":
         # 매수는 누적만 업데이트
         rows[i]["total_profit"] = total_profit
         rows[i]["trade_count"] = trade_count
+        rows[i]["total_profit_rate"] = total_profit_rate
+        
       elif order_type == "SELL":
-        profit = total_amounts - prev_amounts
-        profit_rate = (profit / prev_amounts) * 100 if prev_amounts != 0 else 0
+        profit = 0.0
+        profit_rate = 0.0
+        
+        if prev_index < 0:
+          print("❌ 이전 거래 정보가 없습니다. 누적 수익률 계산을 건너뜁니다.")
+        else:        
+          profit = (total_amounts - round(paid_fee)) - (prev_amounts + round(prev_paid_fee))
+          profit_rate = (profit / (prev_amounts + round(prev_paid_fee))) * 100 if prev_amounts != 0 else 0
+        
         total_profit += profit
         trade_count += 1
+        total_profit_rate += profit_rate
 
         rows[i]["profit"] = profit
         rows[i]["profit_rate"] = profit_rate
         rows[i]["total_profit"] = total_profit
         rows[i]["trade_count"] = trade_count
+        rows[i]["total_profit_rate"] = total_profit_rate
 
       updated = True
 

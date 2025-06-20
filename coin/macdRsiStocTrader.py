@@ -5,6 +5,7 @@ import json
 from coin.bithumb_trader import place_order, chance_order, get_uuid_order, is_order_failed, get_ticker, fetch_candles
 from log.logger import log_trade, init_log_file
 from coin.execute.execute_batch import run_fill_checker
+from coin.execute.adjust_price import adjust_price_based_on_profit
 
 # EMA 계산
 def ema(values, period):
@@ -78,8 +79,8 @@ def calculate_stochastic(highs, lows, closes, k_period=14, d_period=3):
 # 정각 + 3초 대기
 async def wait_until_minute_plus_3sec(interval=5):
     """
-    interval (ex: 5분봉) 기준으로, 다음 봉이 생성된 후 2분 + 3초 뒤에 실행되도록 대기
-    즉, 매 (5,10,15...) + 2분 + 3초 = 7,12,17,... 에 동작
+    interval (ex: 5분봉) 기준으로, 다음 봉이 생성된 후 3초 뒤에 실행되도록 대기
+    즉, 매 (5,10,15...) + 3초 = 5,10,15,... 에 동작
     """
     while True:
         now = datetime.now()
@@ -88,14 +89,14 @@ async def wait_until_minute_plus_3sec(interval=5):
         next_candle_time = now.replace(minute=0, second=0, microsecond=0) + timedelta(minutes=next_candle_minute)
         
         # 캔들 생성 후 2분 + 3초 뒤 타겟
-        target = next_candle_time + timedelta(minutes=2, seconds=3)
+        target = next_candle_time + timedelta(minutes=0, seconds=3)
         
         sleep_time = (target - now).total_seconds()
         if sleep_time <= 0:
             # 이미 시간이 지난 경우 한 번 더 계산
             continue
         
-        print(f"⏳ 다음 {interval}분봉 캔들 생성 + 2분 3초 후까지 {sleep_time:.2f}초 대기 중... ({target})")
+        print(f"⏳ 다음 {interval}분봉 캔들 생성 + 3초 후까지 {sleep_time:.2f}초 대기 중... ({target})")
         await asyncio.sleep(sleep_time)
         break
 
@@ -125,6 +126,9 @@ async def run_auto_trading(market, csv_file):
         if len(close_prices) < 27:
             print("⚠️ 데이터 부족")
             continue
+        
+        price = adjust_price_based_on_profit(csv_file, price)
+        print(f"조정된 가격: {price}")
 
         high_used_prices = high_prices[:-1]  # 최신 캔들 제외
         low_used_prices = low_prices[:-1]  # 최신 캔들 제외
@@ -163,7 +167,7 @@ async def run_auto_trading(market, csv_file):
                 
                 print(f"🟢 매수 요청 결과: {result}")
                 order_timestamp = result.get("created_at", timestamp)
-                log_trade(order_uuid, order_timestamp, "BUY", 0, 0, 0, 0, 0, 0, 0, csv_file)
+                log_trade(order_uuid, order_timestamp, "BUY", 0, 0, 0, 0, 0, 0, 0, 0, 0, csv_file)
 
         # 📌 매도 조건
         elif (in_position and 
@@ -189,7 +193,7 @@ async def run_auto_trading(market, csv_file):
                 
                 print(f"🔴 매도 요청 결과: {result}")
                 order_timestamp = result.get("created_at", timestamp)
-                log_trade(order_uuid, order_timestamp, "SELL", 0, 0, 0, 0, 0, 0, 0, csv_file)
+                log_trade(order_uuid, order_timestamp, "SELL", 0, 0, 0, 0, 0, 0, 0, 0, 0, csv_file)
 
 async def main():
     market = "KRW-XRP"  # 거래할 마켓
