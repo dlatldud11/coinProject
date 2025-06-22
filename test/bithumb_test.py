@@ -104,17 +104,17 @@ async def run_auto_trading(market):
 #   )
   
 if __name__ == "__main__":
-    market = "KRW-XRP"  # 거래할 마켓
+    market = "KRW-ETH"  # 거래할 마켓
     
-    asyncio.run(run_fill_checker("250620_KRW-XRP_trade.csv"))   # 체결 확인 배치)
+    # asyncio.run(run_fill_checker("250620_KRW-XRP_trade.csv"))   # 체결 확인 배치)
     # price = adjust_price_based_on_profit("250620_KRW-XRP_trade.csv", 50000)
     # print(f"조정된 가격: {price}")
     
-    # # 잔고테스트
-    # result = chance_order(market)
-    # print(f"잔고테스트: {json.dumps(result, indent=2, ensure_ascii=False)}")
-    # volume = result['ask_account']['balance']
+    # 잔고테스트
+    result = chance_order(market)
+    print(f"잔고테스트: {json.dumps(result, indent=2, ensure_ascii=False)}")
+    volume = result['ask_account']['balance']
 
 
-# filename = init_log_file("KRW-XRP")
+# filename = init_log_file("KRW-ETH")
 # print(f"거래 로그 파일: {filename}")

@@ -196,7 +196,7 @@ async def run_auto_trading(market, csv_file):
                 log_trade(order_uuid, order_timestamp, "SELL", 0, 0, 0, 0, 0, 0, 0, 0, 0, csv_file)
 
 async def main():
-    market = "KRW-XRP"  # 거래할 마켓
+    market = "KRW-ETH"  # 거래할 마켓
     filename = init_log_file(market)  # 거래 로그 파일 초기화
     await asyncio.gather(
         run_auto_trading(market, filename),  # 자동매매 로직

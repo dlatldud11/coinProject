@@ -63,6 +63,8 @@ def place_order(type, market, price, volume=0):
 # 주문가능정보
 def chance_order(market):
   
+  # print("accessKey", accessKey)
+  # print("secretKey", secretKey)
   # Set API parameters
   param = dict( market=market )
 

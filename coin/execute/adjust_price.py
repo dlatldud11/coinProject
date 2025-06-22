@@ -15,7 +15,9 @@ def adjust_price_based_on_profit(csv_path: str, base_price: float) -> float:
         raise ValueError(f"CSV 파일을 읽을 수 없습니다: {e}")
 
     if df.empty:
-        raise ValueError("CSV 파일에 데이터가 없습니다.")
+        # raise ValueError("CSV 파일에 데이터가 없습니다.")
+        print("CSV 파일에 데이터가 없습니다.")
+        return base_price
 
     last_row = df.iloc[-1]
 
