@@ -102,7 +102,7 @@ async def wait_until_minute_plus_3sec(interval=5):
 
 
 # 자동매매 로직
-async def run_auto_trading(market, csv_file):
+async def run_auto_trading(market, price, csv_file):
     
     in_position = False
     market = market  # 거래할 마켓
@@ -116,7 +116,7 @@ async def run_auto_trading(market, csv_file):
         print(f"잔고가 있습니다. 현재 잔고: {volume} {market} 잔고의 평균 매수가격: {avg_buy_price}")
         in_position = True
         
-    price = "50000" # 매수 가격 (고정값)
+    price = price # 매수 가격 (고정값)
 
     while True:
         await wait_until_minute_plus_3sec(interval=5)  # 5분봉 기준
@@ -196,10 +196,21 @@ async def run_auto_trading(market, csv_file):
                 log_trade(order_uuid, order_timestamp, "SELL", 0, 0, 0, 0, 0, 0, 0, 0, 0, csv_file)
 
 async def main():
-    market = "KRW-ETH"  # 거래할 마켓
+    
+    market, price = input().split()
+    
+    if market is None:
+        market = "KRW-ETH"  # 거래할 마켓
+    if price is None:
+        price = "50000"    
+    else:
+        price = int(price)
+        
+    print(f"입력된 타입: {market} {price}")
+    
     filename = init_log_file(market)  # 거래 로그 파일 초기화
     await asyncio.gather(
-        run_auto_trading(market, filename),  # 자동매매 로직
+        run_auto_trading(market, price, filename),  # 자동매매 로직
         run_fill_checker(filename)   # 체결 확인 배치
     )
 
