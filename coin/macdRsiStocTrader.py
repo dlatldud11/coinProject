@@ -106,6 +106,7 @@ async def run_auto_trading(market, price, csv_file):
     
     in_position = False
     market = market  # 거래할 마켓
+    update_price = False # 가격 업데이트 여부
     
     # 잔고테스트
     result = chance_order(market)
@@ -115,6 +116,7 @@ async def run_auto_trading(market, price, csv_file):
         avg_buy_price = float(result['ask_account']['avg_buy_price']) # 잔고의 평균 매수가격
         print(f"잔고가 있습니다. 현재 잔고: {volume} {market} 잔고의 평균 매수가격: {avg_buy_price}")
         in_position = True
+        update_price = True  # 잔고가 있으므로 가격 업데이트 필요
         
     price = price # 매수 가격 (고정값)
 
@@ -127,8 +129,10 @@ async def run_auto_trading(market, price, csv_file):
             print("⚠️ 데이터 부족")
             continue
         
-        price = adjust_price_based_on_profit(csv_file, price)
-        print(f"조정된 가격: {price}")
+        if update_price:
+            price = adjust_price_based_on_profit(csv_file, price)
+            print(f"조정된 가격: {price}")
+            update_price = False
 
         high_used_prices = high_prices[:-1]  # 최신 캔들 제외
         low_used_prices = low_prices[:-1]  # 최신 캔들 제외
@@ -194,6 +198,7 @@ async def run_auto_trading(market, price, csv_file):
                 print(f"🔴 매도 요청 결과: {result}")
                 order_timestamp = result.get("created_at", timestamp)
                 log_trade(order_uuid, order_timestamp, "SELL", 0, 0, 0, 0, 0, 0, 0, 0, 0, csv_file)
+                update_price = True  # 매도 후 가격 업데이트 플래그 설정
 
 async def main():
     
