@@ -119,13 +119,16 @@ async def run_auto_trading(market):
 # filename = init_log_file("KRW-ETH")
 # print(f"거래 로그 파일: {filename}")
 
-market, price = input().split()
+# market, price = input().split()
     
-if market is None:
-    market = "KRW-ETH"  # 거래할 마켓
-if price is None:
-    price = "50000"    
-else:
-    price = int(price)
+# if market is None:
+#     market = "KRW-ETH"  # 거래할 마켓
+# if price is None:
+#     price = "50000"    
+# else:
+#     price = int(price)
     
-print(f"입력된 타입: {market} {price}")
+# print(f"입력된 타입: {market} {price}")
+
+# 캔들 데이터 조회
+high_prices, low_prices, close_prices, timestamps = fetch_candles()

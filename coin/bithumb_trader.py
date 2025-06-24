@@ -10,6 +10,7 @@ import requests
 import json
 from dotenv import load_dotenv
 import os
+from requests.exceptions import RequestException
 
 load_dotenv()
 
@@ -156,14 +157,24 @@ def get_ticker(merket):
 
 
 # 5분봉 캔들 데이터 조회
-def fetch_candles(market="KRW-BTC"):
+def fetch_candles(market="KRW-BTC", retry=3, delay=5):
     url = f"https://api.bithumb.com/v1/candles/minutes/5?market={market}&count=200"
-    response = requests.get(url)
-    data = response.json()
-    # print(json.dumps(data[1], indent=4)) #데이터 이쁘게보이게하기
-    high_prices = [float(candle["high_price"]) for candle in reversed(data)]
-    low_prices = [float(candle["low_price"]) for candle in reversed(data)]
-    close_prices = [float(candle["trade_price"]) for candle in reversed(data)]
     
-    timestamps = [candle["candle_date_time_kst"] for candle in reversed(data)]
-    return high_prices, low_prices, close_prices, timestamps
+    for attempt in range(retry):
+        try:
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+            high_prices = [float(c["high_price"]) for c in reversed(data)]
+            low_prices = [float(c["low_price"]) for c in reversed(data)]
+            close_prices = [float(c["trade_price"]) for c in reversed(data)]
+            timestamps = [c["candle_date_time_kst"] for c in reversed(data)]
+            
+            return high_prices, low_prices, close_prices, timestamps
+        
+        except RequestException as e:
+            print(f"[{attempt+1}/{retry}] 네트워크 오류 발생: {e}")
+            time.sleep(delay)
+    
+    raise ConnectionError("캔들 데이터를 가져오는 데 실패했습니다.")
