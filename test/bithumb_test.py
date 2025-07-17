@@ -103,12 +103,12 @@ async def run_auto_trading(market):
 #       trade_count=0
 #   )
   
-# if __name__ == "__main__":
-#     market = "KRW-ETH"  # 거래할 마켓
+if __name__ == "__main__":
+    market = "KRW-ETH"  # 거래할 마켓
     
-#     # asyncio.run(run_fill_checker("250620_KRW-XRP_trade.csv"))   # 체결 확인 배치)
-#     # price = adjust_price_based_on_profit("250620_KRW-XRP_trade.csv", 50000)
-#     # print(f"조정된 가격: {price}")
+    # asyncio.run(run_fill_checker("250620_KRW-XRP_trade.csv"))   # 체결 확인 배치)
+    price = adjust_price_based_on_profit("250626_KRW-ETH_trade.csv", 5000)
+    print(f"조정된 가격: {price}")
     
 #     # 잔고테스트
 #     result = chance_order(market)
@@ -131,4 +131,4 @@ async def run_auto_trading(market):
 # print(f"입력된 타입: {market} {price}")
 
 # 캔들 데이터 조회
-high_prices, low_prices, close_prices, timestamps = fetch_candles()
+# high_prices, low_prices, close_prices, timestamps = fetch_candles()
